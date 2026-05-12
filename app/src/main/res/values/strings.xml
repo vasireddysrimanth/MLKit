@@ -1,0 +1,8 @@
+<resources>
+    <string name="app_name">MlKit</string>
+<!-- TODO: Remove or change this placeholder text -->
+    <string name="hello_blank_fragment">Hello blank fragment</string>
+    <string name="please_select_an_image_first">Please select an image first</string>
+    <string name="camera_start_failed">Camera start failed</string>
+    <string name="error">Error: %1$s</string>
+</resources>
