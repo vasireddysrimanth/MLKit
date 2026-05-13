@@ -72,4 +72,8 @@ dependencies {
     implementation(libs.kotlinx.coroutines.android)
     implementation(libs.kotlinx.coroutines.play.services)
 
+    //model for face detection
+    implementation (libs.face.detection)
+
+
 }
