@@ -40,6 +40,11 @@ android {
         compose = true
         viewBinding = true
     }
+    packaging {
+        resources {
+            excludes += "/META-INF/*"
+        }
+    }
 }
 
 dependencies {
@@ -48,16 +53,16 @@ dependencies {
     implementation(libs.androidx.compose.material3)
     implementation(libs.androidx.compose.ui)
     implementation(libs.androidx.compose.ui.graphics)
-    implementation(libs.androidx.compose.ui.tooling.preview)
     implementation(libs.androidx.core.ktx)
     implementation(libs.androidx.lifecycle.runtime.ktx)
     testImplementation(libs.junit)
     androidTestImplementation(platform(libs.androidx.compose.bom))
     androidTestImplementation(libs.androidx.compose.ui.test.junit4)
-    androidTestImplementation(libs.androidx.espresso.core)
     androidTestImplementation(libs.androidx.junit)
     debugImplementation(libs.androidx.compose.ui.test.manifest)
     debugImplementation(libs.androidx.compose.ui.tooling)
+    implementation(libs.androidx.material.icons.extended)
+    implementation(libs.coil.compose)
     //kotlin fragments
     implementation(libs.androidx.fragment.ktx)
 
@@ -93,13 +98,26 @@ dependencies {
     ksp(libs.hilt.android.compiler)
 
 
-    //j unit test cases for Repository tools and view model
+    //unit test repository and viewmodel test cases
     testImplementation(libs.junit)
     testImplementation(libs.mockk)
     testImplementation(libs.kotlinx.coroutines.test)
-    testImplementation(libs.kotlinx.coroutines.test.v180)
     testImplementation(libs.truth)
-    testImplementation("app.cash.turbine:turbine:1.1.0")
+    testImplementation(libs.turbine)
+
+    // instrumented test cases for UI testing
+    androidTestImplementation(platform(libs.androidx.compose.bom))
+    androidTestImplementation(libs.androidx.compose.ui.test.junit4)
+    androidTestImplementation(libs.androidx.junit)
+    androidTestImplementation(libs.androidx.junit.ktx)
+    androidTestImplementation(libs.core.ktx)
+    androidTestImplementation(libs.androidx.espresso.core)
+    androidTestImplementation(libs.mockk.android)
+
+    // debug dependencies for compose ui testing
+    debugImplementation(libs.androidx.compose.ui.test.manifest)
+    debugImplementation(libs.androidx.compose.ui.tooling)
+
 
 
 }
