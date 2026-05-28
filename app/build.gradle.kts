@@ -68,12 +68,14 @@ dependencies {
 
     // ML Kit Text Recognition (Latin — bundled in APK, no download needed)
     implementation(libs.text.recognition)
-
-    // For live camera (CameraX — optional but recommended)
-    implementation(libs.androidx.camera.core)
-    implementation(libs.androidx.camera.camera2)
-    implementation(libs.androidx.camera.lifecycle)
-    implementation(libs.androidx.camera.view)
+    // To recognize Chinese script
+    implementation(libs.text.recognition.chinese)
+    // To recognize Devanagari script
+    implementation(libs.text.recognition.devanagari)
+    // To recognize Japanese script
+    implementation(libs.text.recognition.japanese)
+    // To recognize Korean script
+    implementation(libs.text.recognition.korean)
 
     // Coroutines (to make async feel clean)
     implementation(libs.kotlinx.coroutines.android)
@@ -92,6 +94,11 @@ dependencies {
 
     implementation(libs.androidx.hilt.lifecycle.viewmodel.compose)
 
+
+    implementation(libs.androidx.camera.core)
+    implementation(libs.androidx.camera.camera2)
+    implementation(libs.androidx.camera.lifecycle)
+    implementation(libs.androidx.camera.view)
 
     //hilt
     implementation(libs.hilt.android)
