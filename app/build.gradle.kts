@@ -83,6 +83,7 @@ dependencies {
 
     //model for face detection
     implementation (libs.face.detection)
+    implementation(libs.accompanist.permissions)
 
 
     //test cases api

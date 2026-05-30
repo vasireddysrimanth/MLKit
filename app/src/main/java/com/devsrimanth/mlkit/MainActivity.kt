@@ -4,6 +4,7 @@ import android.os.Bundle
 import androidx.activity.compose.setContent
 import androidx.activity.enableEdgeToEdge
 import androidx.appcompat.app.AppCompatActivity
+import com.devsrimanth.mlkit.faceDetection.FaceDetectionScreen
 import com.devsrimanth.mlkit.textRecognization.TextRecognizerScreen
 import dagger.hilt.android.AndroidEntryPoint
 
@@ -14,7 +15,7 @@ class MainActivity : AppCompatActivity() {
         super.onCreate(savedInstanceState)
         enableEdgeToEdge()
         setContent {
-            TextRecognizerScreen()
+            FaceDetectionScreen()
         }
     }
 }
