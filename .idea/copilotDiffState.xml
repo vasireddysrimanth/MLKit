@@ -1,0 +1,18 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<project version="4">
+  <component name="CopilotDiffPersistence">
+    <option name="pendingDiffs">
+      <map>
+        <entry key="/MainActivity (snapshot).kt">
+          <value>
+            <PendingDiffInfo>
+              <option name="filePath" value="/MainActivity (snapshot).kt" />
+              <option name="originalContent" value="package com.devsrimanth.mlkit&#10;&#10;import android.os.Bundle&#10;import android.util.Log&#10;import androidx.activity.compose.setContent&#10;import androidx.activity.enableEdgeToEdge&#10;import androidx.appcompat.app.AppCompatActivity&#10;import com.devsrimanth.mlkit.faceDetection.FaceDetectionScreen&#10;import com.devsrimanth.mlkit.textRecognization.TextRecognizerScreen&#10;import dagger.hilt.android.AndroidEntryPoint&#10;import org.tensorflow.lite.Interpreter&#10;import org.tensorflow.lite.support.common.FileUtil&#10;&#10;@AndroidEntryPoint&#10;class MainActivity : AppCompatActivity() {&#10;&#10;    override fun onCreate(savedInstanceState: Bundle?) {&#10;        super.onCreate(savedInstanceState)&#10;        enableEdgeToEdge()&#10;        setContent {&#10;            val model = FileUtil.loadMappedFile(this, &quot;1.tflite&quot;)&#10;            val interpreter = Interpreter(model)&#10;&#10;            Log.d(&quot;TFLite&quot;, &quot;Model loaded successfully! ✅ $interpreter&quot;)&#10;            FaceDetectionScreen()&#10;        }&#10;    }&#10;}" />
+              <option name="updatedContent" value="package com.devsrimanth.mlkit&#10;&#10;import android.os.Bundle&#10;import android.util.Log&#10;import androidx.activity.compose.setContent&#10;import androidx.activity.enableEdgeToEdge&#10;import androidx.appcompat.app.AppCompatActivity&#10;import com.devsrimanth.mlkit.faceDetection.FaceDetectionScreen&#10;import dagger.hilt.android.AndroidEntryPoint&#10;import org.tensorflow.lite.Interpreter&#10;import java.io.FileInputStream&#10;import java.nio.MappedByteBuffer&#10;import java.nio.channels.FileChannel&#10;&#10;@AndroidEntryPoint&#10;class MainActivity : AppCompatActivity() {&#10;&#10;    override fun onCreate(savedInstanceState: Bundle?) {&#10;        super.onCreate(savedInstanceState)&#10;        enableEdgeToEdge()&#10;        setContent {&#10;            val model = loadModelFile(&quot;1.tflite&quot;)&#10;            val interpreter = Interpreter(model)&#10;&#10;            Log.d(&quot;TFLite&quot;, &quot;Model loaded successfully! $interpreter&quot;)&#10;            FaceDetectionScreen()&#10;        }&#10;    }&#10;&#10;    private fun loadModelFile(fileName: String): MappedByteBuffer {&#10;        val fileDescriptor = assets.openFd(fileName)&#10;        FileInputStream(fileDescriptor.fileDescriptor).use { inputStream -&gt;&#10;            val fileChannel = inputStream.channel&#10;            val startOffset = fileDescriptor.startOffset&#10;            val declaredLength = fileDescriptor.declaredLength&#10;            return fileChannel.map(FileChannel.MapMode.READ_ONLY, startOffset, declaredLength)&#10;        }&#10;    }&#10;}" />
+            </PendingDiffInfo>
+          </value>
+        </entry>
+      </map>
+    </option>
+  </component>
+</project>

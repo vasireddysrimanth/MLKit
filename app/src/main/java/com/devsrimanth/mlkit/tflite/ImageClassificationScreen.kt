@@ -1,0 +1,268 @@
+package com.devsrimanth.mlkit.tflite
+
+import android.graphics.Bitmap
+import android.graphics.BitmapFactory
+import androidx.activity.compose.rememberLauncherForActivityResult
+import androidx.activity.result.contract.ActivityResultContracts
+import androidx.compose.foundation.Image
+import androidx.compose.foundation.background
+import androidx.compose.foundation.layout.*
+import androidx.compose.foundation.shape.RoundedCornerShape
+import androidx.compose.material3.*
+import androidx.compose.runtime.*
+import androidx.compose.ui.Alignment
+import androidx.compose.ui.Modifier
+import androidx.compose.ui.draw.clip
+import androidx.compose.ui.graphics.Color
+import androidx.compose.ui.graphics.asImageBitmap
+import androidx.compose.ui.layout.ContentScale
+import androidx.compose.ui.platform.LocalContext
+import androidx.compose.ui.text.font.FontWeight
+import androidx.compose.ui.unit.dp
+import androidx.compose.ui.unit.sp
+import org.tensorflow.lite.Interpreter
+import java.io.FileInputStream
+import java.nio.ByteBuffer
+import java.nio.ByteOrder
+import java.nio.MappedByteBuffer
+import java.nio.channels.FileChannel
+
+@Composable
+fun ImageClassificationScreen() {
+    val context = LocalContext.current
+
+    // States
+    var userPickedBitMap by remember { mutableStateOf<Bitmap?>(null) }
+    var predictions by remember { mutableStateOf<List<Pair<String, Int>>>(emptyList()) }
+    var isLoading by remember { mutableStateOf(false) }
+
+    // Interpreter + Labels load
+    val interpreter = remember {
+        val fileDescriptor = context.assets.openFd("1.tflite")
+        FileInputStream(fileDescriptor.fileDescriptor).use { inputStream ->
+            val fileChannel = inputStream.channel
+            val model: MappedByteBuffer = fileChannel.map(
+                FileChannel.MapMode.READ_ONLY,
+                fileDescriptor.startOffset,
+                fileDescriptor.declaredLength
+            )
+            Interpreter(model)
+        }
+    }
+
+    val labels = remember {
+        context.assets.open("labels.txt")
+            .bufferedReader()
+            .readLines()
+    }
+
+    // Image Picker
+    val imagePicker = rememberLauncherForActivityResult(
+        contract = ActivityResultContracts.GetContent()
+    ) { uri ->
+        uri?.let {
+            // Step 2: URI → Bitmap
+            val stream = context.contentResolver.openInputStream(it)
+            val bitmap = BitmapFactory.decodeStream(stream)
+            userPickedBitMap = bitmap
+            isLoading = true
+
+            // Step 3: Preprocess
+            val byteBuffer = preprocessBitmap(bitmap!!)
+
+            // Step 4: Inference
+            val scores = runInference(interpreter, byteBuffer)
+
+            // Step 5: Post Process
+            predictions = getTop3(scores, labels)
+            isLoading = false
+        }
+    }
+
+    // UI
+    Column(
+        modifier = Modifier
+            .fillMaxSize()
+            .background(Color(0xFFF5F5F5))
+            .padding(16.dp),
+        horizontalAlignment = Alignment.CenterHorizontally,
+        verticalArrangement = Arrangement.spacedBy(16.dp)
+    ) {
+
+        // Title
+        Text(
+            text = "TFLite Classifier",
+            fontSize = 26.sp,
+            fontWeight = FontWeight.Bold,
+            color = Color(0xFF1A1A2E)
+        )
+
+        // Image Box
+        Box(
+            modifier = Modifier
+                .size(280.dp)
+                .clip(RoundedCornerShape(20.dp))
+                .background(Color(0xFFE0E0E0)),
+            contentAlignment = Alignment.Center
+        ) {
+            if (userPickedBitMap != null) {
+                Image(
+                    bitmap = userPickedBitMap!!.asImageBitmap(),
+                    contentDescription = "Selected Image",
+                    contentScale = ContentScale.Crop,
+                    modifier = Modifier.fillMaxSize()
+                )
+            } else {
+                Text(
+                    text = "No Image Selected",
+                    color = Color.Gray,
+                    fontSize = 14.sp
+                )
+            }
+        }
+
+        // Pick Button
+        Button(
+            onClick = { imagePicker.launch("image/*") },
+            modifier = Modifier
+                .fillMaxWidth()
+                .height(52.dp),
+            shape = RoundedCornerShape(14.dp),
+            colors = ButtonDefaults.buttonColors(
+                containerColor = Color(0xFF6C63FF)
+            )
+        ) {
+            Text(
+                text = "Pick Image from Gallery",
+                fontSize = 16.sp,
+                fontWeight = FontWeight.SemiBold
+            )
+        }
+
+        // Loading
+        if (isLoading) {
+            CircularProgressIndicator(color = Color(0xFF6C63FF))
+        }
+
+        // Predictions
+        if (predictions.isNotEmpty()) {
+            Text(
+                text = "Top 3 Predictions",
+                fontSize = 18.sp,
+                fontWeight = FontWeight.Bold,
+                color = Color(0xFF1A1A2E)
+            )
+
+            predictions.forEachIndexed { index, (label, confidence) ->
+                PredictionCard(
+                    rank = index + 1,
+                    label = label,
+                    confidence = confidence
+                )
+            }
+        }
+    }
+}
+
+@Composable
+fun PredictionCard(rank: Int, label: String, confidence: Int) {
+    val rankColor = when (rank) {
+        1 -> Color(0xFF6C63FF) // Purple - 1st
+        2 -> Color(0xFF3ABEF9) // Blue - 2nd
+        else -> Color(0xFF5CB85C) // Green - 3rd
+    }
+
+    Card(
+        modifier = Modifier.fillMaxWidth(),
+        shape = RoundedCornerShape(14.dp),
+        colors = CardDefaults.cardColors(containerColor = Color.White),
+        elevation = CardDefaults.cardElevation(4.dp)
+    ) {
+        Row(
+            modifier = Modifier
+                .fillMaxWidth()
+                .padding(16.dp),
+            verticalAlignment = Alignment.CenterVertically,
+            horizontalArrangement = Arrangement.SpaceBetween
+        ) {
+            Row(
+                verticalAlignment = Alignment.CenterVertically,
+                horizontalArrangement = Arrangement.spacedBy(12.dp)
+            ) {
+                // Rank badge
+                Box(
+                    modifier = Modifier
+                        .size(36.dp)
+                        .clip(RoundedCornerShape(10.dp))
+                        .background(rankColor),
+                    contentAlignment = Alignment.Center
+                ) {
+                    Text(
+                        text = "#$rank",
+                        color = Color.White,
+                        fontWeight = FontWeight.Bold,
+                        fontSize = 13.sp
+                    )
+                }
+
+                // Label
+                Text(
+                    text = label.replaceFirstChar { it.uppercase() },
+                    fontSize = 15.sp,
+                    fontWeight = FontWeight.Medium,
+                    color = Color(0xFF1A1A2E)
+                )
+            }
+
+            // Confidence
+            Box(
+                modifier = Modifier
+                    .clip(RoundedCornerShape(20.dp))
+                    .background(rankColor.copy(alpha = 0.15f))
+                    .padding(horizontal = 12.dp, vertical = 4.dp)
+            ) {
+                Text(
+                    text = "$confidence%",
+                    color = rankColor,
+                    fontWeight = FontWeight.Bold,
+                    fontSize = 14.sp
+                )
+            }
+        }
+    }
+}
+
+// Step 3: Preprocess
+private fun preprocessBitmap(bitmap: Bitmap): ByteBuffer {
+    val resized = Bitmap.createScaledBitmap(bitmap, 128, 128, true)
+    val byteBuffer = ByteBuffer.allocateDirect(1 * 128 * 128 * 3 * 4)
+    byteBuffer.order(ByteOrder.nativeOrder())
+    for (y in 0 until 128) {
+        for (x in 0 until 128) {
+            val pixel = resized.getPixel(x, y)
+            byteBuffer.putFloat((pixel shr 16 and 0xFF) / 255.0f)
+            byteBuffer.putFloat((pixel shr 8 and 0xFF) / 255.0f)
+            byteBuffer.putFloat((pixel and 0xFF) / 255.0f)
+        }
+    }
+    return byteBuffer
+}
+
+// Step 4: Inference
+private fun runInference(interpreter: Interpreter, byteBuffer: ByteBuffer): FloatArray {
+    val output = Array(1) { FloatArray(1001) }
+    interpreter.run(byteBuffer, output)
+    return output[0]
+}
+
+// Step 5: Post Process
+private fun getTop3(scores: FloatArray, labels: List<String>): List<Pair<String, Int>> {
+    return scores
+        .mapIndexed { index, score -> index to score }
+        .sortedByDescending { it.second }
+        .take(3)
+        .map { (index, score) ->
+            val label = if (index < labels.size) labels[index] else "Unknown"
+            label to (score * 100).toInt()
+        }
+}
