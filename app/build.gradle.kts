@@ -127,8 +127,11 @@ dependencies {
     debugImplementation(libs.androidx.compose.ui.tooling)
 
     //tensorflow lite dependencies
-    implementation("org.tensorflow:tensorflow-lite:2.17.0")
-    implementation("org.tensorflow:tensorflow-lite-gpu:2.17.0")
+    implementation(libs.tensorflow.lite)
+    implementation(libs.tensorflow.lite.gpu)
+
+    // MediaPipe Tasks Vision
+    implementation(libs.tasks.vision)
 
 
 }
